@@ -11,21 +11,13 @@ buildscript {
         resolutionStrategy {
             force "com.google.protobuf:protoc:3.21.0"
         }
-}
+    }
 
-    // dependencies {
-    //     classpath 'com.android.tools.build:gradle:4.1.0'
-    //     compile "com.google.protobuf:protobuf-java:3.21.0"  // Add this
-    // }
     dependencies {
         implementation "com.google.protobuf:protobuf-java:3.21.0"
         protobufToolsLocator "com.google.protobuf:protoc:3.21.0"
     }
-
-
 }
-
-
 
 rootProject.allprojects {
     repositories {
@@ -54,9 +46,9 @@ android {
 
 protobuf {
     protoc {
-        // artifact = 'com.google.protobuf:protoc:3.11.4'
-        path = '/opt/homebrew/bin/protoc' // installed path
-
+        artifact = 'com.google.protobuf:protoc:3.21.0'
+        // If you have installed protoc manually, you can use the installed path like this:
+        // path = '/opt/homebrew/bin/protoc'
     }
     generateProtoTasks {
         all().each { task ->
@@ -68,7 +60,3 @@ protobuf {
         }
     }
 }
-
-// dependencies {
-//     implementation 'com.google.protobuf:protobuf-javalite:3.11.4'
-// }
