@@ -41,6 +41,8 @@ android {
 protobuf {
     protoc {
         artifact = 'com.google.protobuf:protoc:3.11.4'
+        path = '/opt/homebrew/bin/protoc' // installed path
+
     }
     generateProtoTasks {
         all().each { task ->
