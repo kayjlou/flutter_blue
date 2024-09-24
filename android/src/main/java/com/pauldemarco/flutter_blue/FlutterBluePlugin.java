@@ -89,42 +89,41 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
     private boolean allowDuplicates = false;
 
     /** Plugin registration. */
-    public static void registerWith(Registrar registrar) {
-        FlutterBluePlugin instance = new FlutterBluePlugin();
-        Activity activity = registrar.activity();
-        Application application = null;
-        if (registrar.context() != null) {
-            application = (Application) (registrar.context().getApplicationContext());
-        }
-        instance.setup(registrar.messenger(), application, activity, registrar, null);
-    }
+    // public static void registerWith(Registrar registrar) {
+    //     FlutterBluePlugin instance = new FlutterBluePlugin();
+    //     Activity activity = registrar.activity();
+    //     Application application = null;
+    //     if (registrar.context() != null) {
+    //         application = (Application) (registrar.context().getApplicationContext());
+    //     }
+    //     instance.setup(registrar.messenger(), application, activity, registrar, null);
+    // }
 
     public FlutterBluePlugin() {}
 
     @Override
     public void onAttachedToEngine(FlutterPluginBinding binding) {
         pluginBinding = binding;
+        setup(binding.getBinaryMessenger(), (Application) binding.getApplicationContext(), null, null, null);
     }
 
     @Override
     public void onDetachedFromEngine(FlutterPluginBinding binding) {
         pluginBinding = null;
-
+        tearDown();
     }
 
     @Override
     public void onAttachedToActivity(ActivityPluginBinding binding) {
         activityBinding = binding;
-        setup(
-                pluginBinding.getBinaryMessenger(),
-                (Application) pluginBinding.getApplicationContext(),
-                activityBinding.getActivity(),
-                null,
-                activityBinding);
+        activity = binding.getActivity();
+        setup(pluginBinding.getBinaryMessenger(), (Application) pluginBinding.getApplicationContext(), activity, null, activityBinding);
     }
 
     @Override
     public void onDetachedFromActivity() {
+        activityBinding = null;
+        activity = null;
         tearDown();
     }
 
@@ -138,12 +137,7 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
         onAttachedToActivity(binding);
     }
 
-    private void setup(
-            final BinaryMessenger messenger,
-            final Application application,
-            final Activity activity,
-            final PluginRegistry.Registrar registrar,
-            final ActivityPluginBinding activityBinding) {
+    private void setup(final BinaryMessenger messenger, final Application application, final Activity activity, final PluginRegistry.Registrar registrar, final ActivityPluginBinding activityBinding) {
         synchronized (initializationLock) {
             Log.i(TAG, "setup");
             this.activity = activity;
@@ -155,10 +149,8 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
             stateChannel.setStreamHandler(stateHandler);
             mBluetoothManager = (BluetoothManager) application.getSystemService(Context.BLUETOOTH_SERVICE);
             mBluetoothAdapter = mBluetoothManager.getAdapter();
-            if (registrar != null) {
-                // V1 embedding setup for activity listeners.
-                registrar.addRequestPermissionsResultListener(this);
-            } else {
+
+            if (activityBinding != null) {
                 // V2 embedding setup for activity listeners.
                 activityBinding.addRequestPermissionsResultListener(this);
             }
@@ -167,9 +159,12 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
     private void tearDown() {
         Log.i(TAG, "teardown");
+        if (activityBinding != null) {
+            activityBinding.removeRequestPermissionsResultListener(this);
+        }
         context = null;
-        activityBinding.removeRequestPermissionsResultListener(this);
         activityBinding = null;
+        activity = null;
         channel.setMethodCallHandler(null);
         channel = null;
         stateChannel.setStreamHandler(null);
@@ -178,6 +173,11 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
         mBluetoothManager = null;
         application = null;
     }
+
+
+
+
+
 
 
     @Override
